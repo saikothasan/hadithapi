@@ -19,6 +19,18 @@ interface Hadith {
   header?: string
 }
 
+interface CollectionResponse {
+  pagination: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+    hasNextPage: boolean
+    hasPrevPage: boolean
+  }
+  results: any[]
+}
+
 export function RandomHadith() {
   const [hadith, setHadith] = useState<Hadith | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -40,7 +52,7 @@ export function RandomHadith() {
         throw new Error("Failed to fetch collection data")
       }
 
-      const collectionData = await collectionResponse.json()
+      const collectionData = (await collectionResponse.json()) as CollectionResponse
       const maxId = collectionData.pagination.total
 
       // Get a random hadith ID
@@ -69,7 +81,9 @@ export function RandomHadith() {
   const handleCopy = () => {
     if (!hadith) return
 
-    const text = `${hadith.refno}\n\n${hadith.hadith_english}`
+    const text = `${hadith.refno}
+
+${hadith.hadith_english}`
     copyToClipboard(text)
 
     toast({

@@ -10,8 +10,8 @@ type EventParams = {
 
 // Track a custom event
 export const trackEvent = ({ action, category, label, value, ...rest }: EventParams) => {
-  if (typeof window !== "undefined" && typeof window.gtag === "function") {
-    window.gtag("event", action, {
+  if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+    ;(window as any).gtag("event", action, {
       event_category: category,
       event_label: label,
       value: value,
@@ -22,8 +22,8 @@ export const trackEvent = ({ action, category, label, value, ...rest }: EventPar
 
 // Track a page view
 export const trackPageView = (url: string) => {
-  if (typeof window !== "undefined" && typeof window.gtag === "function") {
-    window.gtag("config", "G-XXXXXXXXXX", {
+  if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+    ;(window as any).gtag("config", "G-XXXXXXXXXX", {
       page_path: url,
     })
   }

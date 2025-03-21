@@ -5,7 +5,7 @@ import Script from "next/script"
 import { Github, Book, Code, Search } from "lucide-react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { ModeToggle } from "@/components/mode-toggle"
 import { MobileNav } from "@/components/mobile-nav"
 import { Toaster } from "@/components/toaster"
 import { AnalyticsProvider } from "@/components/analytics-provider"
@@ -159,7 +159,7 @@ export default function RootLayout({
                           <span className="sr-only">GitHub</span>
                         </Link>
                       </Button>
-                      <ThemeToggle />
+                      <ModeToggle />
                     </div>
                     <MobileNav />
                   </div>

@@ -90,8 +90,6 @@ export default function Home() {
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link href="/search">
-                    <Search  variant="outline" asChild>
-                  <Link href="/search">
                     <Search className="mr-2 h-5 w-5" />
                     Search Hadiths
                   </Link>
@@ -396,6 +394,6 @@ console.log(hadith.hadith_english);`}
         }}
       />
     </main>
-  );
+  )
 }
 

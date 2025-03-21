@@ -61,12 +61,12 @@ export const metadata = {
   },
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
+    shortcut: "/favicon-96x96.png",
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
   verification: {
-    google: "YOUR_GOOGLE_SITE_VERIFICATION_ID", // Replace with your actual verification ID
+    google: "xjfyOrp8uBjY8H06W5b6N18H9ZRmaHGrN9RYttc-kx8", // Replace with your actual verification ID
   },
 }
 

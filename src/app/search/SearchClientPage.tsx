@@ -74,6 +74,9 @@ export default function SearchClientPage() {
 
   // Initialize state from URL parameters
   useEffect(() => {
+    const urlQuery = searchParams?.get("q") || ""
+    const urlCollection = searchParams?.get("collection") || ""
+
     setQuery(urlQuery)
     setCollection(urlCollection)
     setFilters((prev) => ({
@@ -81,7 +84,7 @@ export default function SearchClientPage() {
       query: urlQuery,
       collection: urlCollection,
     }))
-  }, [urlQuery, urlCollection])
+  }, [searchParams])
 
   // Fix the performSearch function to properly handle search parameters
   const performSearch = useCallback(async () => {

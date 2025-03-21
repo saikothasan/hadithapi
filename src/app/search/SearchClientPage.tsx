@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft, Search, BookOpen, ArrowUpRight } from "lucide-react"
@@ -47,15 +47,124 @@ export default function SearchClientPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [query, setQuery] = useState(searchParams.get("q") || "")
-  const [collection, setCollection] = useState(searchParams.get("collection") || "")
+  const [query, setQuery] = useState("")
+  const [collection, setCollection] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
-  const page = Number.parseInt(searchParams.get("page") || "1")
+  // Get search parameters from URL
+  const urlQuery = searchParams?.get("q") || ""
+  const urlCollection = searchParams?.get("collection") || ""
+  const page = Number.parseInt(searchParams?.get("page") || "1", 10) || 1
+
+  // Initialize state from URL parameters
+  useEffect(() => {
+    setQuery(urlQuery)
+    setCollection(urlCollection)
+  }, [urlQuery, urlCollection])
+
+  const performSearch = useCallback(async () => {
+    if (!query.trim()) {
+      return
+    }
+
+    try {
+      const searchUrl = new URL("/api/search", window.location.origin)
+      searchUrl.searchParams.append("q", query)
+      if (collection) searchUrl.searchParams.append("collection", collection)
+      searchUrl.searchParams.append("page", String(page))
+      searchUrl.searchParams.append("limit", "10")
+
+      const response = await fetch(searchUrl.toString())
+
+      if (!response.ok) {
+        throw new Error(`Failed to search hadiths: ${response.status}`)
+      }
+
+      const data = (await response.json()) as SearchResponse
+
+      if (!data || !Array.isArray(data.results)) {
+        console.error("Invalid search response:", data)
+        throw new Error("Invalid response format from search API")
+      }
+
+      return data
+    } catch (err) {
+      console.error("Search error:", err)
+      throw err
+    }
+  }, [query, collection, page])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const doSearch = async () => {
+      if (!query) {
+        setIsInitialLoad(false)
+        return
+      }
+
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const data = await performSearch()
+        if (isMounted && data) {
+          setResults(data.results)
+          setPagination(data.pagination)
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "An error occurred")
+          setResults([])
+          setPagination(null)
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+          setIsInitialLoad(false)
+        }
+      }
+    }
+
+    doSearch()
+
+    return () => {
+      isMounted = false
+    }
+  }, [query, collection, page, performSearch])
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!query.trim()) {
+      setError("Please enter a search query")
+      return
+    }
+
+    // Update URL with search parameters
+    const params = new URLSearchParams()
+    if (query) params.set("q", query)
+    if (collection) params.set("collection", collection)
+    params.set("page", "1") // Reset to page 1 on new search
+
+    router.push(`/search?${params.toString()}`)
+  }
+
+  const handleCollectionChange = (value: string) => {
+    setCollection(value)
+
+    // Update URL with new collection
+    const params = new URLSearchParams()
+    if (query) params.set("q", query)
+    if (value) params.set("collection", value)
+    params.set("page", "1") // Reset to page 1 on collection change
+
+    router.push(`/search?${params.toString()}`)
+  }
 
   const collections = [
     { value: "", label: "All Collections" },
@@ -65,77 +174,6 @@ export default function SearchClientPage() {
     { value: "ibnmajah", label: "Sunan Ibn Majah" },
     { value: "tirmidhi", label: "Jami at-Tirmidhi" },
   ]
-
-  const performSearch = async () => {
-    if (!query.trim()) {
-      setIsInitialLoad(false)
-      return
-    }
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const searchUrl = new URL("/api/search", window.location.origin)
-      searchUrl.searchParams.append("q", query)
-      if (collection) searchUrl.searchParams.append("collection", collection)
-      searchUrl.searchParams.append("page", page.toString())
-      searchUrl.searchParams.append("limit", "10")
-
-      const response = await fetch(searchUrl.toString())
-
-      if (!response.ok) {
-        throw new Error("Failed to search hadiths")
-      }
-
-      const data = (await response.json()) as SearchResponse
-      setResults(data.results)
-      setPagination(data.pagination)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
-      setResults([])
-      setPagination(null)
-    } finally {
-      setIsLoading(false)
-      setIsInitialLoad(false)
-    }
-  }
-
-  useEffect(() => {
-    if (query) {
-      performSearch()
-    } else {
-      setIsInitialLoad(false)
-    }
-  }, [page, collection])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Update URL with search parameters
-    const params = new URLSearchParams()
-    if (query) params.set("q", query)
-    if (collection) params.set("collection", collection)
-    params.set("page", "1") // Reset to page 1 on new search
-
-    router.push(`/search?${params.toString()}`)
-    performSearch()
-  }
-
-  const handleCollectionChange = (value: string) => {
-    setCollection(value)
-
-    // Update URL with new collection
-    const params = new URLSearchParams(searchParams.toString())
-    if (value) {
-      params.set("collection", value)
-    } else {
-      params.delete("collection")
-    }
-    params.set("page", "1") // Reset to page 1 on collection change
-
-    router.push(`/search?${params.toString()}`)
-  }
 
   return (
     <div>
@@ -244,13 +282,13 @@ export default function SearchClientPage() {
             No results found for "{query}". Try different keywords or browse collections.
           </p>
         </div>
-      ) : results.length > 0 ? (
+      ) : results.length > 0 && pagination ? (
         <>
           <div className="mb-4">
             <p className="text-muted-foreground">
-              Showing {((pagination?.page || 1) - 1) * (pagination?.limit || 10) + 1}-
-              {Math.min((pagination?.page || 1) * (pagination?.limit || 10), pagination?.total || 0)} of{" "}
-              {pagination?.total || 0} results
+              Showing {((pagination.page || 1) - 1) * (pagination.limit || 10) + 1}-
+              {Math.min((pagination.page || 1) * (pagination.limit || 10), pagination.total || 0)} of{" "}
+              {pagination.total || 0} results
             </p>
           </div>
 

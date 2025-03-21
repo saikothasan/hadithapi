@@ -69,8 +69,19 @@ export default function HadithClientPage({ params }: HadithPageProps) {
           throw new Error(`Failed to fetch ${collection} collection`)
         }
 
-        const data = await response.json()
-        const foundHadith = data.hadith.find((h: any) => h.id === idNumber)
+        const data = (await response.json()) as {
+          hadith: Array<{
+            id: number
+            header: string
+            hadith_english: string
+            book: string
+            refno: string
+            bookName: string
+            chapterName: string
+          }>
+        }
+
+        const foundHadith = data.hadith.find((h) => h.id === idNumber)
 
         if (!foundHadith) {
           notFound()

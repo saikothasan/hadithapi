@@ -3,8 +3,6 @@ import Link from "next/link"
 import { ChevronLeft, Copy, Share2, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import fs from "fs"
-import path from "path"
 
 export const runtime = "edge"
 
@@ -37,10 +35,14 @@ export async function generateMetadata({ params }: HadithPageProps) {
   }
 
   try {
-    // Read the JSON file
-    const filePath = path.join(process.cwd(), "public", `${collection}.json`)
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    const data = JSON.parse(fileContents)
+    // Fetch the JSON file
+    const response = await fetch(`https://hadithapi.pages.dev/${collection}.json`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${collection} collection`)
+    }
+
+    const data = await response.json()
 
     // Find the hadith with the matching ID
     const hadith = data.hadith.find((h: any) => h.id === idNumber)
@@ -110,10 +112,14 @@ export default async function HadithPage({ params }: HadithPageProps) {
   }
 
   try {
-    // Read the JSON file
-    const filePath = path.join(process.cwd(), "public", `${collection}.json`)
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    const data = JSON.parse(fileContents)
+    // Fetch the JSON file
+    const response = await fetch(`https://hadithapi.pages.dev/${collection}.json`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${collection} collection`)
+    }
+
+    const data = await response.json()
 
     // Find the hadith with the matching ID
     const hadith = data.hadith.find((h: any) => h.id === idNumber)

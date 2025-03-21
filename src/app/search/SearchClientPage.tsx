@@ -38,6 +38,11 @@ interface PaginationInfo {
   hasPrevPage: boolean
 }
 
+interface SearchResponse {
+  results: SearchResult[]
+  pagination: PaginationInfo
+}
+
 export default function SearchClientPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -83,7 +88,7 @@ export default function SearchClientPage() {
         throw new Error("Failed to search hadiths")
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as SearchResponse
       setResults(data.results)
       setPagination(data.pagination)
     } catch (err) {

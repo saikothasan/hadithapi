@@ -1,36 +1,19 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hadith API
 
-## Getting Started
+![Hadith API](https://sjc.microlink.io/ZtuomOnu6Uk_ndBf6H92VZwyPFXsfXycwETDSP0kbirjkNujd-CFnpowZzFz5_KszP11zphA7rRXPu1K8z6pJg.jpeg)
 
-First, run the development server:
+A modern, accessible RESTful API for retrieving authentic hadiths from major collections. The API is built with Next.js and serves hadith data from five major collections in a structured JSON format.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🔗 Live Demo
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit the live application at: [https://hadithapi.pages.dev/](https://hadithapi.pages.dev/)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✨ Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Five Major Collections**: Access hadiths from Sahih Bukhari, Sahih Muslim, Sunan Abu Dawud, Sunan Ibn Majah, and Jami at-Tirmidhi
+- **RESTful API**: Simple, intuitive API endpoints for retrieving hadith data
+- **Pagination**: Efficiently browse through large collections with pagination support
+- **Search Functionality**: Search across all collections or within specific collections
+- **Edge Runtime**: Optimized performance with Edge Runtime support
+- **Responsive UI**: User-friendly interface for browsing and searching hadiths
+- **SEO Optimized**: Enhanced discoverability with comprehensive metadata and structured data

@@ -31,6 +31,16 @@ interface CollectionResponse {
   results: any[]
 }
 
+interface HadithResponse {
+  id: number
+  hadith_english: string
+  refno: string
+  book: string
+  chapterName: string
+  header?: string
+  bookName?: string
+}
+
 export function RandomHadith() {
   const [hadith, setHadith] = useState<Hadith | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -64,7 +74,7 @@ export function RandomHadith() {
         throw new Error("Failed to fetch random hadith")
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as HadithResponse
       setHadith({ ...data, collection: randomCollection })
     } catch (err) {
       console.error("Error fetching random hadith:", err)

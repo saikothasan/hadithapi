@@ -1,6 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
 
 export const runtime = "edge"
 
@@ -10,6 +8,7 @@ export async function GET(request: NextRequest) {
   const collection = searchParams.get("collection")
   const page = Number.parseInt(searchParams.get("page") || "1")
   const limit = Number.parseInt(searchParams.get("limit") || "10")
+  const baseUrl = new URL(request.url).origin
 
   // Validate query
   if (!query || query.trim().length === 0) {
@@ -36,18 +35,25 @@ export async function GET(request: NextRequest) {
 
     // If collection is specified, search only in that collection
     if (collection) {
-      const filePath = path.join(process.cwd(), "public", `${collection}.json`)
-      const fileContents = fs.readFileSync(filePath, "utf8")
-      const data = JSON.parse(fileContents)
+      const response = await fetch(`${baseUrl}/${collection}.json`)
 
+      if (!response.ok) {
+        return NextResponse.json({ error: `Failed to retrieve ${collection} collection` }, { status: 500 })
+      }
+
+      const data = await response.json()
       allResults = searchInCollection(data.hadith, query, collection)
     } else {
       // Search in all collections
       for (const col of validCollections) {
-        const filePath = path.join(process.cwd(), "public", `${col}.json`)
-        const fileContents = fs.readFileSync(filePath, "utf8")
-        const data = JSON.parse(fileContents)
+        const response = await fetch(`${baseUrl}/${col}.json`)
 
+        if (!response.ok) {
+          console.error(`Failed to retrieve ${col} collection`)
+          continue
+        }
+
+        const data = await response.json()
         const results = searchInCollection(data.hadith, query, col)
         allResults = [...allResults, ...results]
       }

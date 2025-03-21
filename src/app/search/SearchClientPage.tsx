@@ -249,8 +249,8 @@ export default function SearchClientPage() {
                 />
               </div>
               <div className="flex gap-2">
-                <Select value={collection} onValueChange={handleCollectionChange} className="w-full sm:w-[200px]">
-                  <SelectTrigger>
+                <Select value={collection} onValueChange={handleCollectionChange}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue placeholder="All Collections" />
                   </SelectTrigger>
                   <SelectContent>

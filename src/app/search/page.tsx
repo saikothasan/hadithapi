@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import SearchClientPage from "./SearchClientPage"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
 export const metadata: Metadata = {
   title: "Search Hadiths",
@@ -67,8 +68,8 @@ function SearchSkeleton() {
 
       <div className="space-y-6">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="border rounded-lg overflow-hidden">
-            <div className="p-6 bg-muted/50 border-b">
+          <Card key={i} className="overflow-hidden">
+            <CardHeader className="bg-muted/50">
               <div className="flex justify-between items-start">
                 <div>
                   <Skeleton className="h-6 w-40" />
@@ -76,8 +77,8 @@ function SearchSkeleton() {
                 </div>
                 <Skeleton className="h-9 w-28" />
               </div>
-            </div>
-            <div className="p-6">
+            </CardHeader>
+            <CardContent className="pt-6">
               <div className="space-y-4">
                 <div>
                   <Skeleton className="h-4 w-24 mb-2" />
@@ -86,8 +87,8 @@ function SearchSkeleton() {
                   <Skeleton className="h-4 w-3/4 mt-2" />
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

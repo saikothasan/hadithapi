@@ -15,12 +15,20 @@ interface HadithData {
   }>
 }
 
+// Improve error handling in the search API
+
+// Update the error handling in the GET function
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const query = searchParams.get("q")
   const collection = searchParams.get("collection")
   const page = Number.parseInt(searchParams.get("page") || "1")
   const limit = Number.parseInt(searchParams.get("limit") || "10")
+  const exact = searchParams.get("exact") === "true"
+  const narrator = searchParams.get("narrator")
+  const bookName = searchParams.get("bookName")
+  const chapterName = searchParams.get("chapterName")
+  const excludeTerms = searchParams.get("exclude")
   const baseUrl = new URL(request.url).origin
 
   // Validate query
@@ -55,7 +63,16 @@ export async function GET(request: NextRequest) {
       }
 
       const data = (await response.json()) as HadithData
-      allResults = searchInCollection(data.hadith, query, collection)
+      allResults = searchInCollection(
+        data.hadith,
+        query,
+        collection,
+        exact,
+        narrator,
+        bookName,
+        chapterName,
+        excludeTerms,
+      )
     } else {
       // Search in all collections
       for (const col of validCollections) {
@@ -67,7 +84,16 @@ export async function GET(request: NextRequest) {
         }
 
         const data = (await response.json()) as HadithData
-        const results = searchInCollection(data.hadith, query, col)
+        const results = searchInCollection(
+          data.hadith,
+          query,
+          col,
+          exact,
+          narrator,
+          bookName,
+          chapterName,
+          excludeTerms,
+        )
         allResults = [...allResults, ...results]
       }
     }
@@ -105,15 +131,60 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function searchInCollection(hadiths: any[], query: string, collectionName: string) {
+// Update the searchInCollection function to handle additional filters
+function searchInCollection(
+  hadiths: any[],
+  query: string,
+  collectionName: string,
+  exact = false,
+  narrator?: string | null,
+  bookName?: string | null,
+  chapterName?: string | null,
+  excludeTerms?: string | null,
+) {
   const lowerQuery = query.toLowerCase()
+  const excludeArray = excludeTerms
+    ? excludeTerms
+        .toLowerCase()
+        .split(",")
+        .map((term) => term.trim())
+    : []
 
   return hadiths
     .filter((hadith) => {
-      return (
-        (hadith.hadith_english && hadith.hadith_english.toLowerCase().includes(lowerQuery)) ||
-        (hadith.chapterName && hadith.chapterName.toLowerCase().includes(lowerQuery))
-      )
+      // Check if hadith matches the main query
+      const matchesQuery = exact
+        ? (hadith.hadith_english && hadith.hadith_english.toLowerCase().includes(lowerQuery)) ||
+          (hadith.chapterName && hadith.chapterName.toLowerCase().includes(lowerQuery))
+        : (hadith.hadith_english && hadith.hadith_english.toLowerCase().includes(lowerQuery)) ||
+          (hadith.chapterName && hadith.chapterName.toLowerCase().includes(lowerQuery))
+
+      // Check if hadith matches narrator filter
+      const matchesNarrator =
+        !narrator || !narrator.trim() || (hadith.header && hadith.header.toLowerCase().includes(narrator.toLowerCase()))
+
+      // Check if hadith matches book name filter
+      const matchesBookName =
+        !bookName ||
+        !bookName.trim() ||
+        (hadith.bookName && hadith.bookName.toLowerCase().includes(bookName.toLowerCase()))
+
+      // Check if hadith matches chapter name filter
+      const matchesChapterName =
+        !chapterName ||
+        !chapterName.trim() ||
+        (hadith.chapterName && hadith.chapterName.toLowerCase().includes(chapterName.toLowerCase()))
+
+      // Check if hadith contains any excluded terms
+      const containsExcludedTerms =
+        excludeArray.length > 0 &&
+        excludeArray.some(
+          (term) =>
+            (hadith.hadith_english && hadith.hadith_english.toLowerCase().includes(term)) ||
+            (hadith.chapterName && hadith.chapterName.toLowerCase().includes(term)),
+        )
+
+      return matchesQuery && matchesNarrator && matchesBookName && matchesChapterName && !containsExcludedTerms
     })
     .map((hadith) => ({
       ...hadith,

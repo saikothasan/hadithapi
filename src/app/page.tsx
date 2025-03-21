@@ -3,6 +3,7 @@ import Image from "next/image"
 import { Book, Search, Code, Database, BookOpen, ExternalLink, ArrowRight, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { RandomHadith } from "@/components/random-hadith"
 
 export const metadata = {
   title: "Hadith API - Access Authentic Hadith Collections",
@@ -89,6 +90,8 @@ export default function Home() {
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link href="/search">
+                    <Search  variant="outline" asChild>
+                  <Link href="/search">
                     <Search className="mr-2 h-5 w-5" />
                     Search Hadiths
                   </Link>
@@ -113,8 +116,19 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-primary/5 blur-3xl"></div>
       </section>
 
+      {/* Random Hadith Section */}
+      <section className="py-12 container mx-auto px-4">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold tracking-tight text-primary">Hadith of the Moment</h2>
+          <p className="text-muted-foreground">Discover wisdom from authentic hadith collections</p>
+        </div>
+        <div className="max-w-3xl mx-auto">
+          <RandomHadith />
+        </div>
+      </section>
+
       {/* Collections Section */}
-      <section className="py-16 container mx-auto px-4">
+      <section className="py-16 container mx-auto px-4 bg-muted/20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight mb-4 text-primary">Hadith Collections</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -230,10 +244,10 @@ export default function Home() {
                 <code className="text-foreground">
                   {`// Fetch a specific hadith
 async function getHadith(collection, id) {
-  const response = await fetch(
-    \`https://hadithapi.pages.dev/api/\${collection}/\${id}\`
-  );
-  return await response.json();
+const response = await fetch(
+  \`https://hadithapi.pages.dev/api/\${collection}/\${id}\`
+);
+return await response.json();
 }
 
 // Example usage
@@ -382,6 +396,6 @@ console.log(hadith.hadith_english);`}
         }}
       />
     </main>
-  )
+  );
 }
 

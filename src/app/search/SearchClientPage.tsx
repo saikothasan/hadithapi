@@ -19,6 +19,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Skeleton } from "@/components/ui/skeleton"
+import { AdvancedSearchFilters, type SearchFilters } from "@/components/advanced-search-filters"
+import { HadithActions } from "@/components/hadith-actions"
+import { trackSearch } from "@/lib/analytics"
 
 interface SearchResult {
   id: number
@@ -54,6 +57,15 @@ export default function SearchClientPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [filters, setFilters] = useState<SearchFilters>({
+    query: "",
+    collection: "",
+    exactMatch: false,
+    narrator: "",
+    bookName: "",
+    chapterName: "",
+    excludeTerms: "",
+  })
 
   // Get search parameters from URL
   const urlQuery = searchParams?.get("q") || ""
@@ -64,10 +76,18 @@ export default function SearchClientPage() {
   useEffect(() => {
     setQuery(urlQuery)
     setCollection(urlCollection)
+    setFilters((prev) => ({
+      ...prev,
+      query: urlQuery,
+      collection: urlCollection,
+    }))
   }, [urlQuery, urlCollection])
 
+  // Fix the performSearch function to properly handle search parameters
   const performSearch = useCallback(async () => {
     if (!query.trim()) {
+      setResults([])
+      setPagination(null)
       return
     }
 
@@ -77,6 +97,13 @@ export default function SearchClientPage() {
       if (collection) searchUrl.searchParams.append("collection", collection)
       searchUrl.searchParams.append("page", String(page))
       searchUrl.searchParams.append("limit", "10")
+
+      // Add advanced filters
+      if (filters.exactMatch) searchUrl.searchParams.append("exact", "true")
+      if (filters.narrator) searchUrl.searchParams.append("narrator", filters.narrator)
+      if (filters.bookName) searchUrl.searchParams.append("bookName", filters.bookName)
+      if (filters.chapterName) searchUrl.searchParams.append("chapterName", filters.chapterName)
+      if (filters.excludeTerms) searchUrl.searchParams.append("exclude", filters.excludeTerms)
 
       const response = await fetch(searchUrl.toString())
 
@@ -91,19 +118,25 @@ export default function SearchClientPage() {
         throw new Error("Invalid response format from search API")
       }
 
+      // Track search event
+      trackSearch(query, data.results.length)
+
       return data
     } catch (err) {
       console.error("Search error:", err)
       throw err
     }
-  }, [query, collection, page])
+  }, [query, collection, page, filters])
 
+  // Fix the useEffect that performs the search to include all dependencies
   useEffect(() => {
     let isMounted = true
 
     const doSearch = async () => {
       if (!query) {
         setIsInitialLoad(false)
+        setResults([])
+        setPagination(null)
         return
       }
 
@@ -154,14 +187,31 @@ export default function SearchClientPage() {
     router.push(`/search?${params.toString()}`)
   }
 
+  // Fix the handleCollectionChange function to properly update the collection state
   const handleCollectionChange = (value: string) => {
     setCollection(value)
+    setFilters((prev) => ({ ...prev, collection: value }))
 
     // Update URL with new collection
-    const params = new URLSearchParams()
+    const params = new URLSearchParams(searchParams?.toString() || "")
     if (query) params.set("q", query)
     if (value) params.set("collection", value)
     params.set("page", "1") // Reset to page 1 on collection change
+
+    router.push(`/search?${params.toString()}`)
+  }
+
+  // Fix the handleApplyFilters function to properly update all filter states
+  const handleApplyFilters = (newFilters: SearchFilters) => {
+    setFilters(newFilters)
+    setQuery(newFilters.query)
+    setCollection(newFilters.collection)
+
+    // Update URL with filters
+    const params = new URLSearchParams(searchParams?.toString() || "")
+    if (newFilters.query) params.set("q", newFilters.query)
+    if (newFilters.collection) params.set("collection", newFilters.collection)
+    params.set("page", "1") // Reset to page 1 when filters change
 
     router.push(`/search?${params.toString()}`)
   }
@@ -188,31 +238,40 @@ export default function SearchClientPage() {
         <h1 className="text-3xl font-bold tracking-tight mb-6 text-primary">Search Hadiths</h1>
 
         <div className="p-6 bg-primary/5 rounded-lg border border-primary/10 mb-8 shadow-sm">
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Search for hadiths..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full"
-              />
+          <form onSubmit={handleSearch} className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search for hadiths..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={collection} onValueChange={handleCollectionChange} className="w-full sm:w-[200px]">
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Collections" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {collections.map((col) => (
+                      <SelectItem key={col.value} value={col.value}>
+                        {col.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 whitespace-nowrap">
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </Button>
+              </div>
             </div>
-            <Select value={collection} onValueChange={handleCollectionChange}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="All Collections" />
-              </SelectTrigger>
-              <SelectContent>
-                {collections.map((col) => (
-                  <SelectItem key={col.value} value={col.value}>
-                    {col.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90">
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
+
+            <div className="flex justify-between items-center mt-2">
+              <div className="text-sm text-muted-foreground">{pagination && `${pagination.total} results found`}</div>
+              <AdvancedSearchFilters onApplyFilters={handleApplyFilters} initialFilters={filters} />
+            </div>
           </form>
         </div>
       </div>
@@ -299,7 +358,7 @@ export default function SearchClientPage() {
                 className="overflow-hidden border-primary/10 transition-all duration-300 hover:shadow-md hover:border-primary/20"
               >
                 <CardHeader className="bg-primary/5 border-b">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div>
                       <CardTitle className="text-lg flex items-center">
                         <BookOpen className="h-4 w-4 mr-2 text-primary" />
@@ -311,7 +370,7 @@ export default function SearchClientPage() {
                       variant="outline"
                       size="sm"
                       asChild
-                      className="hover:bg-primary hover:text-primary-foreground transition-colors"
+                      className="hover:bg-primary hover:text-primary-foreground transition-colors w-full sm:w-auto"
                     >
                       <Link href={`/hadith/${result.collection}/${result.id}`}>
                         View Details
@@ -338,6 +397,17 @@ export default function SearchClientPage() {
                       )}
                     </div>
                   </div>
+                </CardContent>
+                <CardContent className="pt-0 pb-4 px-6">
+                  <HadithActions
+                    hadith={{
+                      id: result.id,
+                      collection: result.collection,
+                      refno: result.refno,
+                      hadith_english: result.hadith_english,
+                      chapterName: result.chapterName,
+                    }}
+                  />
                 </CardContent>
               </Card>
             ))}

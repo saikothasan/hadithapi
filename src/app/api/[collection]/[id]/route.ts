@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { trackApiUsage } from "@/lib/analytics"
 
 export const runtime = "edge"
 
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
   // Validate collection name
   const validCollections = ["bukhari", "muslim", "abudawud", "ibnmajah", "tirmidhi"]
   if (!validCollections.includes(collection)) {
+    trackApiUsage(`/api/${collection}/${id}`, 400)
     return NextResponse.json({ error: "Invalid collection name" }, { status: 400 })
   }
 
@@ -35,6 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
   }
 
   if (isNaN(idNumber) || idNumber < 1 || idNumber > maxIds[collection as keyof typeof maxIds]) {
+    trackApiUsage(`/api/${collection}/${id}`, 400)
     return NextResponse.json(
       { error: `ID must be between 1 and ${maxIds[collection as keyof typeof maxIds]}` },
       { status: 400 },
@@ -46,6 +49,7 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
     const response = await fetch(`${new URL(request.url).origin}/${collection}.json`)
 
     if (!response.ok) {
+      trackApiUsage(`/api/${collection}/${id}`, 500)
       return NextResponse.json({ error: "Failed to retrieve hadith collection" }, { status: 500 })
     }
 
@@ -56,12 +60,15 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
     const hadith = data.hadith.find((h: any) => h.id === idNumber)
 
     if (!hadith) {
+      trackApiUsage(`/api/${collection}/${id}`, 404)
       return NextResponse.json({ error: "Hadith not found" }, { status: 404 })
     }
 
+    trackApiUsage(`/api/${collection}/${id}`, 200)
     return NextResponse.json(hadith)
   } catch (error) {
     console.error("Error reading hadith:", error)
+    trackApiUsage(`/api/${collection}/${id}`, 500)
     return NextResponse.json({ error: "Failed to retrieve hadith" }, { status: 500 })
   }
 }

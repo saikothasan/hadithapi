@@ -1,6 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
 
 export const runtime = "edge"
 
@@ -26,10 +24,14 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
   }
 
   try {
-    // Read the JSON file
-    const filePath = path.join(process.cwd(), "public", `${collection}.json`)
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    const data = JSON.parse(fileContents)
+    // Fetch the JSON file
+    const response = await fetch(`${new URL(request.url).origin}/${collection}.json`)
+
+    if (!response.ok) {
+      return NextResponse.json({ error: "Failed to retrieve hadith collection" }, { status: 500 })
+    }
+
+    const data = await response.json()
 
     // Calculate pagination
     const startIndex = (page - 1) * limit

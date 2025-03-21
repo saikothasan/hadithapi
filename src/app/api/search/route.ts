@@ -2,6 +2,19 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export const runtime = "edge"
 
+// Add type interface for the hadith data
+interface HadithData {
+  hadith: Array<{
+    id: number
+    header: string
+    hadith_english: string
+    book: string
+    refno: string
+    bookName: string
+    chapterName: string
+  }>
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const query = searchParams.get("q")
@@ -33,7 +46,7 @@ export async function GET(request: NextRequest) {
   try {
     let allResults: any[] = []
 
-    // If collection is specified, search only in that collection
+    // Update the fetch response handling with type assertion in the collection search
     if (collection) {
       const response = await fetch(`${baseUrl}/${collection}.json`)
 
@@ -41,7 +54,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: `Failed to retrieve ${collection} collection` }, { status: 500 })
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as HadithData
       allResults = searchInCollection(data.hadith, query, collection)
     } else {
       // Search in all collections
@@ -53,7 +66,7 @@ export async function GET(request: NextRequest) {
           continue
         }
 
-        const data = await response.json()
+        const data = (await response.json()) as HadithData
         const results = searchInCollection(data.hadith, query, col)
         allResults = [...allResults, ...results]
       }

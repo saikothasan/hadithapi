@@ -2,6 +2,19 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export const runtime = "edge"
 
+// Add type interface for the hadith data
+interface HadithData {
+  hadith: Array<{
+    id: number
+    header: string
+    hadith_english: string
+    book: string
+    refno: string
+    bookName: string
+    chapterName: string
+  }>
+}
+
 export async function GET(request: NextRequest, { params }: { params: { collection: string; id: string } }) {
   const { collection, id } = params
   const idNumber = Number.parseInt(id)
@@ -36,7 +49,8 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
       return NextResponse.json({ error: "Failed to retrieve hadith collection" }, { status: 500 })
     }
 
-    const data = await response.json()
+    // Update the fetch response handling with type assertion
+    const data = (await response.json()) as HadithData
 
     // Find the hadith with the matching ID
     const hadith = data.hadith.find((h: any) => h.id === idNumber)

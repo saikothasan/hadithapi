@@ -1,5 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+// Add type interface for the hadith data
+interface HadithData {
+  hadith: Array<{
+    id: number
+    header: string
+    hadith_english: string
+    book: string
+    refno: string
+    bookName: string
+    chapterName: string
+  }>
+}
+
 export const runtime = "edge"
 
 export async function GET(request: NextRequest, { params }: { params: { collection: string } }) {
@@ -31,7 +44,8 @@ export async function GET(request: NextRequest, { params }: { params: { collecti
       return NextResponse.json({ error: "Failed to retrieve hadith collection" }, { status: 500 })
     }
 
-    const data = await response.json()
+    // Update the fetch response handling with type assertion
+    const data = (await response.json()) as HadithData
 
     // Calculate pagination
     const startIndex = (page - 1) * limit

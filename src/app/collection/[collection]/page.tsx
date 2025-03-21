@@ -24,6 +24,19 @@ interface HadithProps {
   chapterName: string
 }
 
+// Add type interface for the hadith data
+interface HadithData {
+  hadith: Array<{
+    id: number
+    header: string
+    hadith_english: string
+    book: string
+    refno: string
+    bookName: string
+    chapterName: string
+  }>
+}
+
 interface CollectionPageProps {
   params: {
     collection: string
@@ -111,7 +124,8 @@ export default async function CollectionPage({ params, searchParams }: Collectio
       throw new Error(`Failed to fetch ${collection} collection`)
     }
 
-    const data = await response.json()
+    // Update the fetch response handling with type assertion
+    const data = (await response.json()) as HadithData
 
     // Calculate pagination
     const startIndex = (page - 1) * limit

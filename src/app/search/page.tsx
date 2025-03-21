@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import SearchClientPage from "./SearchClientPage"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export const metadata: Metadata = {
   title: "Search Hadiths",
@@ -39,9 +41,56 @@ export default function SearchPage() {
       />
       <div className="container mx-auto px-4 py-12">
         <h1 className="sr-only">Search Hadiths</h1>
-        <SearchClientPage />
+        <Suspense fallback={<SearchSkeleton />}>
+          <SearchClientPage />
+        </Suspense>
       </div>
     </>
+  )
+}
+
+function SearchSkeleton() {
+  return (
+    <div>
+      <div className="mb-8">
+        <Skeleton className="h-4 w-24 mb-4" />
+        <Skeleton className="h-10 w-64 mb-6" />
+
+        <div className="p-6 bg-primary/5 rounded-lg border border-primary/10 mb-8 shadow-sm">
+          <div className="flex flex-col md:flex-row gap-4">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-[200px]" />
+            <Skeleton className="h-10 w-[100px]" />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="border rounded-lg overflow-hidden">
+            <div className="p-6 bg-muted/50 border-b">
+              <div className="flex justify-between items-start">
+                <div>
+                  <Skeleton className="h-6 w-40" />
+                  <Skeleton className="h-4 w-24 mt-2" />
+                </div>
+                <Skeleton className="h-9 w-28" />
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full mt-2" />
+                  <Skeleton className="h-4 w-3/4 mt-2" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 

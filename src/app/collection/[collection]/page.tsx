@@ -11,8 +11,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import fs from "fs"
-import path from "path"
 
 export const runtime = "edge"
 
@@ -105,11 +103,15 @@ export default async function CollectionPage({ params, searchParams }: Collectio
     notFound()
   }
 
-  // Read the JSON file
+  // Fetch the JSON file
   try {
-    const filePath = path.join(process.cwd(), "public", `${collection}.json`)
-    const fileContents = fs.readFileSync(filePath, "utf8")
-    const data = JSON.parse(fileContents)
+    const response = await fetch(`https://hadithapi.pages.dev/${collection}.json`)
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${collection} collection`)
+    }
+
+    const data = await response.json()
 
     // Calculate pagination
     const startIndex = (page - 1) * limit
